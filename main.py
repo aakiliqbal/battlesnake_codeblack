@@ -12,6 +12,7 @@
 
 import random
 import typing
+#import collideitself
 
 
 # info is called when you create your Battlesnake on play.battlesnake.com
@@ -63,14 +64,58 @@ def move(game_state: typing.Dict) -> typing.Dict:
         is_move_safe["up"] = False
 
     # TODO: Step 1 - Prevent your Battlesnake from moving out of bounds
-    # board_width = game_state['board']['width']
-    # board_height = game_state['board']['height']
+    board_width = game_state['board']['width']-1
+    board_height = game_state['board']['height']-1
+
+    if my_head["x"] == 0 and my_head["y"]==0:
+      is_move_safe["down"] = False
+      is_move_safe["left"] = False
+    elif my_head["x"] == board_width and my_head["y"]==0:
+      is_move_safe["down"] = False
+      is_move_safe["right"] = False
+    elif my_head["x"] ==0  and my_head["y"]== board_height:
+      is_move_safe["left"] = False
+      is_move_safe["up"] = False
+    elif my_head["x"] ==board_width  and my_head["y"]== board_height:
+      is_move_safe["right"] = False
+      is_move_safe["up"] = False
+    elif my_head["x"]==0:
+      is_move_safe["left"] = False
+    elif my_head["y"]==0:
+      is_move_safe["down"] = False
+    elif my_head["x"]==board_width:
+      is_move_safe["right"] = False
+    elif my_head["y"]==board_height:
+      is_move_safe["up"] = False
+    
 
     # TODO: Step 2 - Prevent your Battlesnake from colliding with itself
-    # my_body = game_state['you']['body']
+    my_body = game_state['you']['body']
+    for b in my_body:
+        if(my_head["x"] == b["x"]-1 and my_head["y"] == b["y"]):
+            is_move_safe["right"] = False
+        if(my_head["x"] == b["x"]+1 and my_head["y"] == b["y"]):
+            is_move_safe["left"] = False
+        if(my_head["y"] == b["y"]-1 and my_head["x"] == b["x"]):
+            is_move_safe["up"] = False
+        if(my_head["y"] == b["y"]+1 and my_head["x"] == b["x"]):
+            is_move_safe["down"] = False
+
 
     # TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
-    # opponents = game_state['board']['snakes']
+    opponents = game_state['board']['snakes']
+    for snake in opponents:
+        snakebody = snake["body"]
+        for b in snakebody:
+            if(my_head["x"] == b["x"]-1 and my_head["y"] == b["y"]):
+                is_move_safe["right"] = False
+            if(my_head["x"] == b["x"]+1 and my_head["y"] == b["y"]):
+                is_move_safe["left"] = False
+            if(my_head["y"] == b["y"]-1 and my_head["x"] == b["x"]):
+                is_move_safe["up"] = False
+            if(my_head["y"] == b["y"]+1 and my_head["x"] == b["x"]):
+                is_move_safe["down"] = False
+
 
     # Are there any safe moves left?
     safe_moves = []
@@ -83,13 +128,59 @@ def move(game_state: typing.Dict) -> typing.Dict:
         return {"move": "down"}
 
     # Choose a random move from the safe ones
-    next_move = random.choice(safe_moves)
+    #next_move = random.choice(safe_moves)
 
     # TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
-    # food = game_state['board']['food']
+  
+    # Manhatten distance
+    def get_distance(my_future_head, f):
+      x2 = f["x"]
+      y2 = f["y"]
+      x1 = my_future_head["x"]
+      y1 = my_future_head["y"]
+      difference1 = x2 - x1
+      difference2 = y2 - y1
+      absolute_difference = abs(difference1) + abs(difference2)
+      return absolute_difference
+    #Future head
+    def get_moved_head(my_head, my_move):
+      my_future_head = my_head.copy()
+      if my_move == "right":
+        my_future_head["x"] = my_head["x"]+1
+        return my_future_head
+      if my_move == "left":
+        my_future_head["x"] = my_head["x"]-1
+        return my_future_head
+      if my_move == "up":
+        my_future_head["y"] = my_head["y"]+1
+        return my_future_head
+      if my_move == "down":
+        my_future_head["y"]= my_head["y"]-1
+        return my_future_head
+      
+    food = game_state['board']['food']
+    closest = 999999  # some big number
+    closest_move = "up"
+  
+    for f in food:
+        print(safe_moves)
+        for my_move in safe_moves:
+            my_future_head = get_moved_head(my_head, my_move) 
+            distance = get_distance(my_future_head , f)
+            print(distance,closest)
+            if distance < closest:
+                closest = distance # value of closest is not updating
+                closest_move = my_move
+                print(closest_move)
+                print(f"MOVE {game_state['turn']}: {closest_move}")
+                return {"move": closest_move}
+            else:
+              next_move = random.choice(safe_moves)
+              print(f"MOVE {game_state['turn']}: {next_move}")
+              return {"move": next_move}
 
-    print(f"MOVE {game_state['turn']}: {next_move}")
-    return {"move": next_move}
+    # print(f"MOVE {game_state['turn']}: {next_move}")
+    # return {"move": next_move}
 
 
 # Start server when `python main.py` is run
