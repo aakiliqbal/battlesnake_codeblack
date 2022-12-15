@@ -133,7 +133,7 @@ def move(game_state: typing.Dict) -> typing.Dict:
       distance_x = abs(my_head["x"] - target["x"])
       distance_y = abs(my_head["y"] - target["y"])
       
-      for direction in safe_moves():
+      for direction in safe_moves:
         location = get_future_head(my_head, direction)
         new_distance_x = abs(location["x"] - target["x"])
         new_distance_y = abs(location["y"] - target["y"])
